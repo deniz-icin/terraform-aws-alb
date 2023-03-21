@@ -24,7 +24,7 @@ resource "aws_vpc" "terraform_vpc" {
 resource "aws_subnet" "terraform_public_subnet" {
   vpc_id            = aws_vpc.terraform_vpc.id
   cidr_block        = "172.168.1.0/24"
-  availability_zone = "1a"
+  availability_zone = ""eu-central-1a""
 
   tags = {
     Name = "terraform_public_subnet"
@@ -33,7 +33,7 @@ resource "aws_subnet" "terraform_public_subnet" {
 resource "aws_subnet" "terraform_private_subnet" {
   vpc_id            = aws_vpc.terraform_vpc.id
   cidr_block        = "172.168.2.0/24"
-  availability_zone = "1a"
+  availability_zone = ""eu-central-1a""
 
   tags = {
     Name = "terraform_private_subnet"
