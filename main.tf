@@ -24,7 +24,7 @@ resource "aws_vpc" "webapp_vpc" {
 resource "aws_subnet" "webapp_public_subnet" {
   vpc_id            = aws_vpc.webapp_vpc.id
   cidr_block        = "172.168.1.0/24"
-  availability_zone = ""eu-central-1a""
+  availability_zone = "eu-central-1a"
 
   tags = {
     Name = "webapp_public_subnet"
@@ -88,7 +88,6 @@ resource "aws_security_group" "webapp_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
   egress {
     from_port   = 0
     to_port     = 0
@@ -97,8 +96,28 @@ resource "aws_security_group" "webapp_sg" {
   }
 }
 
+data "aws_ami" "webapp_ami" {
+  most_recent                 = true
+  owners                      = ["137112412989"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.0.20230315.0-kernel-6.1-x86_64"]
+  }
+
+  filter {
+    name   = "root-device-type"
+    values = ["ebs"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
 resource "aws_instance" "webapp_instance" {
-  ami           = "ami-0499632f10efc5a62"
+  ami           = data.aws_ami.webapp_ami.id
   instance_type = "t2.micro"
 
   subnet_id                   = aws_subnet.webapp_public_subnet.id
@@ -111,10 +130,10 @@ resource "aws_instance" "webapp_instance" {
   yum install -y httpd
   systemctl start httpd
   systemctl enable httpd
-  echo "<h1>Hello World from $(hostname -f)<hh>"> /var/www/html/index.html
+  echo "<h1>Basic Web App from $(hostname -f)</h1>"> /var/www/html/index.html
   EOF
   
   tags = {
-    Name = "webapp"
+    Name = "webapp-server"
   }
 }
