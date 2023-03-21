@@ -88,6 +88,7 @@ resource "aws_security_group" "webapp_sg" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -97,12 +98,17 @@ resource "aws_security_group" "webapp_sg" {
 }
 
 data "aws_ami" "webapp_ami" {
-  most_recent                 = true
-  owners                      = ["137112412989"]
+  most_recent = true
+  owners      = ["amazon"]
 
   filter {
     name   = "name"
-    values = ["al2023-ami-2023.0.20230315.0-kernel-6.1-x86_64"]
+    values = ["amzn2-ami-kernel-*-hvm-*"]
+  }
+
+ filter {
+    name   = "architecture"
+    values = ["x86_64"]
   }
 
   filter {
