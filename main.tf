@@ -12,69 +12,69 @@ provider "aws" {
   region  = "eu-central-1"
 }
 
-resource "aws_vpc" "terraform_vpc" {
+resource "aws_vpc" "webapp_vpc" {
   cidr_block           = "172.168.0.0/16"
   enable_dns_hostnames = true
 
   tags = {
-    Name = "terraform_vpc"
+    Name = "webapp_vpc"
   }
 }
 
-resource "aws_subnet" "terraform_public_subnet" {
-  vpc_id            = aws_vpc.terraform_vpc.id
+resource "aws_subnet" "webapp_public_subnet" {
+  vpc_id            = aws_vpc.webapp_vpc.id
   cidr_block        = "172.168.1.0/24"
   availability_zone = ""eu-central-1a""
 
   tags = {
-    Name = "terraform_public_subnet"
+    Name = "webapp_public_subnet"
   }
 }
-resource "aws_subnet" "terraform_private_subnet" {
-  vpc_id            = aws_vpc.terraform_vpc.id
+resource "aws_subnet" "webapp_private_subnet" {
+  vpc_id            = aws_vpc.webapp_vpc.id
   cidr_block        = "172.168.2.0/24"
-  availability_zone = ""eu-central-1a""
+  availability_zone = "eu-central-1a"
 
   tags = {
-    Name = "terraform_private_subnet"
+    Name = "webapp_private_subnet"
   }
 }
 
-resource "aws_internet_gateway" "terraform_ig" {
-  vpc_id = aws_vpc.terraform_vpc.id
+resource "aws_internet_gateway" "webapp_ig" {
+  vpc_id = aws_vpc.webapp_vpc.id
 
   tags = {
-    Name = "terraform_ig"
+    Name = "webapp_ig"
   }
 }
 
-resource "aws_route_table" "public_rt" {
-  vpc_id = aws_vpc.terraform_vpc.id
+resource "aws_route_table" "webapp_public_rt" {
+  vpc_id = aws_vpc.webapp_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.terraform_ig.id
+    gateway_id = aws_internet_gateway.webapp_ig.id
   }
 
   route {
     ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.terraform_ig.id
+    gateway_id      = aws_internet_gateway.webapp_ig.id
   }
 
   tags = {
-    Name = "public_rt"
+    Name = "webapp_public_rt"
   }
 }
 
-resource "aws_route_table_association" "public_1_rt_a" {
-  subnet_id      = aws_subnet.terraform_public_subnet.id
-  route_table_id = aws_route_table.public_rt.id
+resource "aws_route_table_association" "webapp_public_rt_a" {
+  subnet_id      = aws_subnet.webapp_public_subnet.id
+  route_table_id = aws_route_table.webapp_public_rt.id
 }
 
-resource "aws_security_group" "terraform_sg" {
-  name        = "terraform_sg"
+resource "aws_security_group" "webapp_sg" {
+  name        = "webapp_sg"
   description = "Allow HTTP and SSH traffic"
-  vpc_id      = aws_vpc.terraform_vpc.id
+  vpc_id      = aws_vpc.webapp_vpc.id
 
   ingress {
     from_port   = 80
@@ -97,12 +97,12 @@ resource "aws_security_group" "terraform_sg" {
   }
 }
 
-resource "aws_instance" "tf-server" {
+resource "aws_instance" "webapp_instance" {
   ami           = "ami-0499632f10efc5a62"
   instance_type = "t2.micro"
 
-  subnet_id                   = aws_subnet.terraform_public_subnet.id
-  vpc_security_group_ids      = [aws_security_group.terraform_sg.id]
+  subnet_id                   = aws_subnet.webapp_public_subnet.id
+  vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
   associate_public_ip_address = true
 
   user_data = <<-EOF
@@ -115,6 +115,6 @@ resource "aws_instance" "tf-server" {
   EOF
   
   tags = {
-    Name = "tf_server"
+    Name = "webapp"
   }
 }
