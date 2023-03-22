@@ -53,7 +53,6 @@ resource "aws_route_table" "public_rt" {
     cidr_block = var.rt_cidr_block_ipv4
     gateway_id = aws_internet_gateway.internet_gateway.id
   }
-
   route {
     ipv6_cidr_block = var.rt_cidr_block_ipv6
     gateway_id      = aws_internet_gateway.internet_gateway.id
@@ -132,45 +131,40 @@ data "aws_ami" "linux_ami" {
     name   = "name"
     values = var.ami_name
   }
-
  filter {
     name   = "architecture"
     values = var.ami_architecture
   }
-
   filter {
     name   = "root-device-type"
     values = var.ami_root_device_type
   }
-
   filter {
     name   = "virtualization-type"
     values = var.ami_virtualization_type
   }
 }
 
-data "aws_subnets" "public" {
-  filter {
-    name   = var.aws_subnets_name
-    values = [aws_vpc.vpc.id]
-  }
+data "aws_subnet_ids" "public" {
+  vpc_id = aws_vpc.vpc.id
 }
 
 resource "aws_instance" "instance" {
   count                       = var.instance_count
   ami                         = data.aws_ami.linux_ami.id
   instance_type               = var.instance_type
-  subnet_id                   = tolist(data.aws_subnets.public.ids)[count.index % length(data.aws_subnets.public.ids)]
+  subnet_id                   = element(data.aws_subnet_ids.public.ids[*], count.index)
   vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
   associate_public_ip_address = var.public_ip_address
 
   user_data = "${file("init.sh")}"
+
   tags = {
     Name = "webserver-${count.index + 1}"
   }
 }
 resource "aws_lb" "load_balancer" {
-  name               = var.alb_name
+  name               = var.lb_name
   internal           = var.load_balancer_internal
   load_balancer_type = var.load_balancer_type
   security_groups    = [aws_security_group.alb_sg.id]
@@ -184,7 +178,6 @@ resource "aws_lb_listener" "listener" {
 
   default_action {
     type = var.listener_default_action_type
-
 
   dynamic "fixed_response" {
     for_each = var.fixed_response
@@ -219,8 +212,9 @@ resource "aws_lb_target_group" "target_group" {
   port     = var.tg_port
   vpc_id   = aws_vpc.vpc.id
 }
+
 resource "aws_lb_target_group_attachment" "tgr_attachment" {
-  count = length(aws_instance.instance)
+  count            = length(aws_instance.instance)
   target_group_arn = aws_lb_target_group.target_group.arn
-  target_id = aws_instance.instance[count.index].id
+  target_id        = aws_instance.instance[count.index].id
 }
