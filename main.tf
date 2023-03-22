@@ -13,7 +13,7 @@ provider "aws" {
 
 resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc_cidr
-  enable_dns_hostnames = true
+  enable_dns_hostnames = var.dns_hostnames
 
   tags = {
     Name = var.vpc_tag
@@ -71,7 +71,7 @@ resource "aws_route_table_association" "rt_association" {
 }
 
 resource "aws_security_group" "webapp_sg" {
-  name        = "webapp_sg"
+  name        = var.sec_group_1_name
   description = "Allow HTTP/HTTPs and SSH traffic"
   vpc_id      = aws_vpc.vpc.id
 
@@ -98,7 +98,7 @@ resource "aws_security_group" "webapp_sg" {
 }
 
 resource "aws_security_group" "alb_sg" {
-  name        = "alb_sg"
+  name        = var.sec_group_2_name
   description = "Allow HTTP/HTTPs traffic"
   vpc_id      = aws_vpc.vpc.id
   
@@ -149,13 +149,20 @@ data "aws_ami" "linux_ami" {
   }
 }
 
-resource "aws_instance" "instance" {
-  count         = var.instance_count
-  ami           = data.aws_ami.linux_ami.id
-  instance_type = var.instance_type
+data "aws_subnets" "public" {
+  filter {
+    name   = var.aws_subnets_name
+    values = [aws_vpc.vpc.id]
+  }
+}
 
+resource "aws_instance" "instance" {
+  count                       = var.instance_count
+  ami                         = data.aws_ami.linux_ami.id
+  instance_type               = var.instance_type
+  subnet_id                   = tolist(data.aws_subnets.public.ids)[count.index % length(data.aws_subnets.public.ids)]
   vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
-  associate_public_ip_address = true
+  associate_public_ip_address = var.public_ip_address
 
   user_data = "${file("init.sh")}"
   tags = {

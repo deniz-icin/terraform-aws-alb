@@ -8,6 +8,12 @@ variable "vpc_cidr" {
   default = "172.168.0.0/16"
 
 }
+
+variable "dns_hostnames" {
+  type = bool
+  default = true
+}
+
 variable "vpc_tag" {
   type = string
   default = "webapp-vpc"
@@ -56,6 +62,14 @@ variable "rt_tag" {
   default = "webapp_public_rt"
 }
 
+variable "sec_group_1_name" {
+  type = string
+  default = "webapp_sg"
+}
+variable "sec_group_2_name" {
+  type = string
+  default = "alb_sg"
+}
 variable "ingress_rules_instance" {
   description = "Ingress security group rules for web servers"
   type        = map
@@ -99,6 +113,11 @@ variable "ami_root_device_type" {
 variable "ami_virtualization_type" {
   type = list
   default = ["hvm"]
+}
+
+variable "aws_subnets_name" {
+  type = string
+  default = "vpc-id"
 }
 
 variable "instance_count" {
