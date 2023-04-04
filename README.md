@@ -19,11 +19,11 @@ terraform apply --auto-approve   # Executes the changes defined by main.tf
 
 :arrow_forward: After apply command, go to Load Balancers from console and copy the DNS Name. Refresh the page 10-15 times. As a result, 3 different web-app instances are running in 2 different subnets.
 
-[Screenshot-1](assets/instance1.png)
+![Screenshot-1](assets/instance1.png)
 
-[Screenshot-2](assets/instance2.png)
+![Screenshot-2](assets/instance2.png)
 
-[Screenshot-3](assets/instance3.png)
+![Screenshot-3](assets/instance3.png)
 
 ### Destroy Infrastructure
 
