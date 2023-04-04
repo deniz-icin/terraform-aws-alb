@@ -20,14 +20,23 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-resource "aws_subnet" "public" {
-  count             = length(var.subnet_cidrs_public)
+resource "aws_subnet" "public_1" {
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = var.subnet_cidrs_public[count.index]
-  availability_zone = var.availability_zones[count.index]
+  cidr_block        = var.subnet_cidrs_public[0]
+  availability_zone = var.availability_zones[0]
 
   tags = {
-    Name = element(var.public_subnet_tags, count.index)
+    Name = var.public_subnet_tags[0]
+  }
+}
+
+resource "aws_subnet" "public_2" {
+  vpc_id            = aws_vpc.vpc.id
+  cidr_block        = var.subnet_cidrs_public[1]
+  availability_zone = var.availability_zones[1]
+
+  tags = {
+    Name = var.public_subnet_tags[1]
   }
 }
 
@@ -63,15 +72,18 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-resource "aws_route_table_association" "rt_association" {
-  count          = length(var.subnet_cidrs_public)
-  subnet_id      = element(aws_subnet.public.*.id, count.index)
+resource "aws_route_table_association" "public_1" {
+  subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_2" {
+  subnet_id      = aws_subnet.public_2.id
   route_table_id = aws_route_table.public_rt.id
 }
 
 resource "aws_security_group" "webapp_sg" {
   name        = var.sec_group_1_name
-  description = "Allow HTTP/HTTPs and SSH traffic"
   vpc_id      = aws_vpc.vpc.id
 
   dynamic "ingress" {
@@ -98,7 +110,6 @@ resource "aws_security_group" "webapp_sg" {
 
 resource "aws_security_group" "alb_sg" {
   name        = var.sec_group_2_name
-  description = "Allow HTTP/HTTPs traffic"
   vpc_id      = aws_vpc.vpc.id
   
   dynamic "ingress" {
@@ -131,7 +142,7 @@ data "aws_ami" "linux_ami" {
     name   = "name"
     values = var.ami_name
   }
- filter {
+  filter {
     name   = "architecture"
     values = var.ami_architecture
   }
@@ -145,22 +156,45 @@ data "aws_ami" "linux_ami" {
   }
 }
 
-data "aws_subnet_ids" "public" {
-  vpc_id = aws_vpc.vpc.id
-}
-
-resource "aws_instance" "instance" {
-  count                       = var.instance_count
+resource "aws_instance" "instance_1" {
   ami                         = data.aws_ami.linux_ami.id
   instance_type               = var.instance_type
-  subnet_id                   = element(data.aws_subnet_ids.public.ids[*], count.index)
+  subnet_id                   = aws_subnet.public_1.id
   vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
   associate_public_ip_address = var.public_ip_address
 
   user_data = "${file("init.sh")}"
 
   tags = {
-    Name = "webserver-${count.index + 1}"
+    Name = var.instance_1_name
+  }
+}
+
+resource "aws_instance" "instance_2" {
+  ami                         = data.aws_ami.linux_ami.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.public_1.id
+  vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
+  associate_public_ip_address = var.public_ip_address
+
+  user_data = "${file("init.sh")}"
+
+  tags = {
+    Name = var.instance_2_name
+  }
+}
+
+resource "aws_instance" "instance_3" {
+  ami                         = data.aws_ami.linux_ami.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.public_2.id
+  vpc_security_group_ids      = [aws_security_group.webapp_sg.id]
+  associate_public_ip_address = var.public_ip_address
+
+  user_data = "${file("init.sh")}"
+
+  tags = {
+    Name = var.instance_3_name
   }
 }
 resource "aws_lb" "load_balancer" {
@@ -168,7 +202,13 @@ resource "aws_lb" "load_balancer" {
   internal           = var.load_balancer_internal
   load_balancer_type = var.load_balancer_type
   security_groups    = [aws_security_group.alb_sg.id]
-  subnets            = [for subnet in aws_subnet.public : subnet.id]
+  subnet_mapping {
+    subnet_id     = aws_subnet.public_1.id
+  }
+
+  subnet_mapping {
+    subnet_id     = aws_subnet.public_2.id
+  }
 }
 
 resource "aws_lb_listener" "listener" {
@@ -213,8 +253,20 @@ resource "aws_lb_target_group" "target_group" {
   vpc_id   = aws_vpc.vpc.id
 }
 
-resource "aws_lb_target_group_attachment" "tgr_attachment" {
-  count            = length(aws_instance.instance)
+resource "aws_lb_target_group_attachment" "instance_1" {
+  port             = var.tg_port
   target_group_arn = aws_lb_target_group.target_group.arn
-  target_id        = aws_instance.instance[count.index].id
+  target_id        = aws_instance.instance_1.id
+}
+
+resource "aws_lb_target_group_attachment" "instance_2" {
+  port             = var.tg_port
+  target_group_arn = aws_lb_target_group.target_group.arn
+  target_id        = aws_instance.instance_2.id
+}
+
+resource "aws_lb_target_group_attachment" "instance_3" {
+  port             = var.tg_port
+  target_group_arn = aws_lb_target_group.target_group.arn
+  target_id        = aws_instance.instance_3.id
 }

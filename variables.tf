@@ -1,8 +1,9 @@
 variable "region" {
-  description = "Web App region"
+  description = "Web App Region"
   type        = string
   default     = "eu-central-1"
 }
+
 
 variable "vpc_cidr" {
   description = "IPv4 CIDR Block for VPC"
@@ -71,13 +72,13 @@ variable "rt_tag" {
 }
 
 variable "sec_group_1_name" {
-  description = "Security group name for servers"
+  description = "Allow HTTP/HTTPs and SSH traffic for servers"
   type        = string
   default     = "webapp_sg"
 }
 
 variable "sec_group_2_name" {
-  description = "Security group name for load balancer"
+  description = "Allow HTTP/HTTPs traffic for load balancer"
   type        = string
   default     = "alb_sg"
 }
@@ -132,16 +133,28 @@ variable "ami_virtualization_type" {
   default     = ["hvm"]
 }
 
-variable "instance_count" {
-  description = "Number of Instances"
-  type        = number
-  default     = 3
-}
-
 variable "instance_type" {
   description = "Type of Instance"
   type        = string
   default     = "t2.micro"
+}
+
+variable "instance_1_name" {
+  description = "Name of First Instance"
+  type        = string
+  default     = "webserver-1"
+}
+
+variable "instance_2_name" {
+  description = "Name of Second Instance"
+  type        = string
+  default     = "webserver-2"
+}
+
+variable "instance_3_name" {
+  description = "Name of Third Instance"
+  type        = string
+  default     = "webserver-3"
 }
 
 variable "public_ip_address" {
