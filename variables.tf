@@ -4,7 +4,6 @@ variable "region" {
   default     = "eu-central-1"
 }
 
-
 variable "vpc_cidr" {
   description = "IPv4 CIDR Block for VPC"
   type        = string
@@ -139,19 +138,19 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "instance_1_name" {
+variable "instance_1" {
   description = "Name of First Instance"
   type        = string
   default     = "webserver-1"
 }
 
-variable "instance_2_name" {
+variable "instance_2" {
   description = "Name of Second Instance"
   type        = string
   default     = "webserver-2"
 }
 
-variable "instance_3_name" {
+variable "instance_3" {
   description = "Name of Third Instance"
   type        = string
   default     = "webserver-3"

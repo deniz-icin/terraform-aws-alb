@@ -59,8 +59,8 @@ resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.vpc.id
 
   route {
-    cidr_block = var.rt_cidr_block_ipv4
-    gateway_id = aws_internet_gateway.internet_gateway.id
+    cidr_block      = var.rt_cidr_block_ipv4
+    gateway_id      = aws_internet_gateway.internet_gateway.id
   }
   route {
     ipv6_cidr_block = var.rt_cidr_block_ipv6
@@ -166,7 +166,7 @@ resource "aws_instance" "instance_1" {
   user_data = "${file("init.sh")}"
 
   tags = {
-    Name = var.instance_1_name
+    Name = var.instance_1
   }
 }
 
@@ -180,7 +180,7 @@ resource "aws_instance" "instance_2" {
   user_data = "${file("init.sh")}"
 
   tags = {
-    Name = var.instance_2_name
+    Name = var.instance_2
   }
 }
 
@@ -194,18 +194,19 @@ resource "aws_instance" "instance_3" {
   user_data = "${file("init.sh")}"
 
   tags = {
-    Name = var.instance_3_name
+    Name = var.instance_3
   }
 }
+
 resource "aws_lb" "load_balancer" {
   name               = var.lb_name
   internal           = var.load_balancer_internal
   load_balancer_type = var.load_balancer_type
   security_groups    = [aws_security_group.alb_sg.id]
+  
   subnet_mapping {
     subnet_id     = aws_subnet.public_1.id
   }
-
   subnet_mapping {
     subnet_id     = aws_subnet.public_2.id
   }
