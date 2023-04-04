@@ -12,7 +12,7 @@ This example deploys a set of EC2 instances behind an ALB for AWS provider.
 ### Getting Started
 
 ```bash
-terraform init                   # Inıtilaze the working directory
+terraform init                   # Initilaze the working directory
 terraform plan                   # Preview any changes before you apply
 terraform apply --auto-approve   # Executes the changes defined by main.tf
 ```
