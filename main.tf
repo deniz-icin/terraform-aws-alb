@@ -99,7 +99,7 @@ resource "aws_security_group" "webapp_sg" {
 
   dynamic "egress" {
     for_each = var.egress_rule
-  content {
+    content {
       from_port        = egress.value.from_port
       to_port          = egress.value.to_port
       protocol         = egress.value.protocol
@@ -125,7 +125,7 @@ resource "aws_security_group" "alb_sg" {
 
   dynamic "egress" {
     for_each = var.egress_rule
-  content {
+    content {
       from_port        = egress.value.from_port
       to_port          = egress.value.to_port
       protocol         = egress.value.protocol
